@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
+# Tests (not needed for deployment)
+tests/
+
+# Development files
+*.log
+.env
+.env.local
+
+# Native C++ (won't work on Vercel)
+causallens/discovery/native/

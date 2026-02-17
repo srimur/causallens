@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CausalLens</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Top bar -->
+<nav>
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <circle cx="4" cy="6" r="2.4" fill="#6366f1"/><circle cx="12" cy="3.5" r="2.4" fill="#6366f1"/><circle cx="20" cy="6" r="2.4" fill="#6366f1"/>
+      <circle cx="8" cy="14" r="2.4" fill="#6366f1"/><circle cx="16" cy="14" r="2.4" fill="#6366f1"/><circle cx="12" cy="21" r="2.4" fill="#6366f1"/>
+      <line x1="5" y1="8" x2="7" y2="12" stroke="#6366f1" stroke-width="1.4"/><line x1="12" y1="5.5" x2="8.5" y2="12" stroke="#6366f1" stroke-width="1.4"/>
+      <line x1="12" y1="5.5" x2="15.5" y2="12" stroke="#6366f1" stroke-width="1.4"/><line x1="19" y1="8" x2="17" y2="12" stroke="#6366f1" stroke-width="1.4"/>
+      <line x1="9" y1="16" x2="11" y2="19" stroke="#6366f1" stroke-width="1.4"/><line x1="15" y1="16" x2="13" y2="19" stroke="#6366f1" stroke-width="1.4"/>
+    </svg>
+    <span>CausalLens</span>
+  </div>
+  <div class="nav-c" id="navStatus">Load a dataset to begin</div>
+  <div class="nav-r">
+    <button class="nav-btn" onclick="togglePanel('info')">How it works</button>
+  </div>
+</nav>
+
+<!-- Main layout: sidebar + workspace -->
+<div class="app">
+
+  <!-- Left sidebar: data picker -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Datasets</div>
+      <button class="ds" onclick="loadDemo('sensor')"><span class="ds-icon">📡</span><div><b>Sensor Network</b><span>6 vars · IoT pressure/temp/flow</span></div></button>
+      <button class="ds" onclick="loadDemo('ml_pipeline')"><span class="ds-icon">🤖</span><div><b>ML Pipeline</b><span>7 vars · training metrics</span></div></button>
+      <button class="ds" onclick="loadDemo('software')"><span class="ds-icon">💻</span><div><b>Software Metrics</b><span>7 vars · DevOps quality</span></div></button>
+      <button class="ds" onclick="loadDemo('network')"><span class="ds-icon">🌐</span><div><b>Network Latency</b><span>6 vars · systems perf</span></div></button>
+      <button class="ds" onclick="loadDemo('business')"><span class="ds-icon">📊</span><div><b>Business</b><span>6 vars · revenue model</span></div></button>
+      <div class="upload-sm">
+        <input type="file" id="csvUpload" accept=".csv">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload your own CSV
+      </div>
+    </div>
+
+    <!-- Data summary (appears after load) -->
+    <div class="sb-section" id="dataSummary" style="display:none">
+      <div class="sb-label" id="dataTitle">—</div>
+      <div class="stat-pills" id="previewStats"></div>
+      <div class="mini-dists" id="distPlots"></div>
+    </div>
+
+    <!-- Graph (appears after discovery) -->
+    <div class="sb-section" id="graphSection" style="display:none">
+      <div class="sb-label">Causal Graph</div>
+      <div class="graph-wrap"><canvas id="graphCanvas"></canvas></div>
+      <div id="edgeList" class="edge-list"></div>
+    </div>
+  </aside>
+
+  <!-- Main workspace -->
+  <main class="workspace" id="workspace">
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <div class="es-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="1.2">
+          <circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <h2>Pick a dataset to get started</h2>
+      <p>Choose a demo from the sidebar or upload your own CSV. The PC algorithm will discover the causal structure, then you can ask questions.</p>
+    </div>
+
+    <!-- Discovery controls (appears after data load) -->
+    <div id="discoverPanel" style="display:none">
+      <div class="panel">
+        <div class="panel-row">
+          <div class="panel-left">
+            <h3 id="panelTitle">—</h3>
+            <span class="panel-sub" id="panelSub">—</span>
+          </div>
+          <div class="panel-right">
+            <select id="alphaSelect" class="sel-sm">
+              <option value="0.01">α = 0.01</option>
+              <option value="0.05" selected>α = 0.05</option>
+              <option value="0.10">α = 0.10</option>
+            </select>
+            <button class="btn-primary" id="discoverBtn" onclick="runDiscovery()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run Discovery
+            </button>
+          </div>
+        </div>
+        <!-- Sample data inline -->
+        <div class="table-wrap" id="sampleTable"></div>
+      </div>
+    </div>
+
+    <!-- Query section (appears after discovery) -->
+    <div id="queryPanel" style="display:none">
+
+      <!-- The big search -->
+      <div class="query-hero">
+        <div class="chips" id="chips"></div>
+        <div class="search-row">
+          <div class="search-wrap">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" class="search-input" id="queryInput" placeholder="What if pressure increases by 20%? · How does X affect Y? · Does X cause Y?">
+          </div>
+          <button class="btn-ask" onclick="runQuery()">Ask</button>
+        </div>
+      </div>
+
+      <!-- Results area -->
+      <div id="queryResult"></div>
+      <div id="nluExplain"></div>
+
+      <!-- Quick tools row -->
+      <div class="tools-row" id="toolsRow" style="display:none">
+        <div class="tool-card" id="toolAte">
+          <div class="tool-header">
+            <h4>Treatment Effect</h4>
+            <span class="tool-badge">ATE</span>
+          </div>
+          <div class="tool-body">
+            <select id="ateX" class="sel-sm"></select>
+            <span class="tool-arrow">→</span>
+            <select id="ateY" class="sel-sm"></select>
+            <button class="btn-sm" onclick="computeATE()">Go</button>
+          </div>
+          <div id="ateResult"></div>
+        </div>
+        <div class="tool-card" id="toolPath">
+          <div class="tool-header">
+            <h4>Trace Path</h4>
+            <span class="tool-badge">DAG</span>
+          </div>
+          <div class="tool-body">
+            <select id="pathFrom" class="sel-sm"></select>
+            <span class="tool-arrow">⇝</span>
+            <select id="pathTo" class="sel-sm"></select>
+            <button class="btn-sm" onclick="tracePath()">Go</button>
+          </div>
+          <div id="pathResult"></div>
+        </div>
+        <div class="tool-card" id="toolModel">
+          <div class="tool-header">
+            <h4>Model Fit</h4>
+            <span class="tool-badge">R²</span>
+          </div>
+          <div class="tool-body">
+            <select id="modelTarget" class="sel-sm"></select>
+            <button class="btn-sm" onclick="compareModels()">Compare</button>
+          </div>
+          <div id="modelResult"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Info panel (slide-over) -->
+<div class="info-overlay" id="infoOverlay" onclick="togglePanel('info')"></div>
+<div class="info-panel" id="infoPanel">
+  <button class="info-close" onclick="togglePanel('info')">✕</button>
+  <h2>How CausalLens Works</h2>
+  <div class="info-section">
+    <h4>1. Structure Discovery</h4>
+    <p>The PC algorithm tests conditional independence between every pair of variables (Fisher's z on partial correlations). It builds a skeleton, identifies v-structures (colliders), then applies Meek's orientation rules R1–R4 to orient remaining edges.</p>
+  </div>
+  <div class="info-section">
+    <h4>2. Structural Equations</h4>
+    <p>For each edge X → Y, we fit a structural equation Y := βX + noise. The coefficients β are estimated via OLS regression. For non-linear relationships, a Random Forest SEM provides feature importances.</p>
+  </div>
+  <div class="info-section">
+    <h4>3. Counterfactual Inference</h4>
+    <p>When you ask "what if X increases by 20%?", the engine computes the intervention do(X = x') and propagates through all downstream paths using Pearl's 3-step: abduction → action → prediction.</p>
+  </div>
+  <div class="info-section">
+    <h4>4. NLP Query Engine</h4>
+    <p>Intent classification via cosine similarity on 50+ template sentences. Supports percentages, absolutes, multipliers ("doubles", "halves"). Fuzzy variable matching handles underscores and partial names.</p>
+  </div>
+  <div class="info-section info-concepts">
+    <h4>Pearl's Ladder of Causation</h4>
+    <div class="info-rung"><span class="rung-badge r1">1</span><b>Association</b> P(Y|X) — seeing</div>
+    <div class="info-rung"><span class="rung-badge r2">2</span><b>Intervention</b> P(Y|do(X)) — doing</div>
+    <div class="info-rung"><span class="rung-badge r3">3</span><b>Counterfactual</b> P(Yₓ|X',Y') — imagining</div>
+  </div>
+  <div class="info-section">
+    <h4>Assumptions</h4>
+    <p>Causal Markov · Faithfulness · No latent confounders · Acyclicity (DAG)</p>
+  </div>
+  <div class="info-section">
+    <h4>Architecture</h4>
+    <div class="info-files">
+      <code>discovery/pc.py</code> — PC algorithm, CI tests<br>
+      <code>inference/counterfactual.py</code> — Pearl's 3-step<br>
+      <code>query/parser.py</code> — NLP intent + variable matching<br>
+      <code>query/explainer.py</code> — 2-layer explanations<br>
+      <code>api/server.py</code> — 12 FastAPI endpoints<br>
+      <code>cli.py</code> — CLI interface
+    </div>
+  </div>
+</div>
+
+<div class="gt-row" id="gtRow" style="display:none"></div>
+
+<script src="data.js"></script>
+<script src="graph.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
