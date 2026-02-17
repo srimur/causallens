@@ -1,34 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
-    },
-    {
-      "src": "causallens/app/frontend/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "^/$",
-      "dest": "/causallens/app/frontend/index.html"
-    },
-    {
-      "src": "^/(styles\\.css|app\\.js|graph\\.js|data\\.js)$",
-      "dest": "/causallens/app/frontend/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/causallens/app/frontend/$1"
-    }
-  ]
+  "buildCommand": null,
+  "outputDirectory": "causallens/app/frontend"
 }
