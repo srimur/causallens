@@ -1,6 +1,6 @@
 // app.js — main logic with API integration + client-side fallback
 
-const API_BASE = '/api';  // Vercel routes /api/* to the Python backend
+const API_BASE = 'https://causallens.onrender.com';  // Vercel routes /api/* to the Python backend
 let D = null;
 let USE_API = true;  // Set to false to use client-side only (demo mode)
 
