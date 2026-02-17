@@ -2,6 +2,8 @@
 
 Causal discovery and counterfactual inference platform.
 <img width="1919" height="988" alt="image" src="https://github.com/user-attachments/assets/1cb786d4-c146-4c27-9bd2-ac5eb6df1f4a" />
+<img width="1918" height="987" alt="image" src="https://github.com/user-attachments/assets/e446411b-828a-46f2-971e-3a995ec8b1ef" />
+
 
 ## Quick Start
 
