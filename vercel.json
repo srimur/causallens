@@ -7,12 +7,10 @@
       "config": {
         "maxLambdaSize": "50mb"
       }
-    }
-  ],
-  "rewrites": [
+    },
     {
-      "source": "/api/:path*",
-      "destination": "/api/index.py"
+      "src": "causallens/app/frontend/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -25,20 +23,12 @@
       "dest": "/causallens/app/frontend/index.html"
     },
     {
-      "src": "^/styles.css$",
-      "dest": "/causallens/app/frontend/styles.css"
+      "src": "^/(styles\\.css|app\\.js|graph\\.js|data\\.js)$",
+      "dest": "/causallens/app/frontend/$1"
     },
     {
-      "src": "^/app.js$",
-      "dest": "/causallens/app/frontend/app.js"
-    },
-    {
-      "src": "^/graph.js$",
-      "dest": "/causallens/app/frontend/graph.js"
-    },
-    {
-      "src": "^/data.js$",
-      "dest": "/causallens/app/frontend/data.js"
+      "src": "/(.*)",
+      "dest": "/causallens/app/frontend/$1"
     }
   ]
 }
