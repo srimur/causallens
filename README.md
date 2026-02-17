@@ -1,6 +1,7 @@
 # CausalLens
 
 Causal discovery and counterfactual inference platform.
+<img width="1919" height="988" alt="image" src="https://github.com/user-attachments/assets/1cb786d4-c146-4c27-9bd2-ac5eb6df1f4a" />
 
 ## Quick Start
 
