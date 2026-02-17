@@ -36,18 +36,6 @@ Go to: **http://localhost:3000**
 
 ---
 
-## Important: Update API URL
-
-Before running, edit `causallens/app/frontend/app.js` line 4:
-
-```javascript
-// Change this:
-const API_BASE = "https://YOUR-APP-NAME.up.railway.app";
-
-// To this:
-const API_BASE = "http://localhost:8000";
-```
-
 ---
 
 ## Usage
